@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Menu</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-menu.css">
+    <script src="scripts.js" defer></script>
+    <script src="admin-menu.js" defer></script>
+    <script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io.connect('http://localhost:3000');
+
+    socket.on('channelsUpdate', (data) => {
+        updateTalkbackStatus(data);
+    });
+</script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">LOGO</div>
+            <div class="welcome"><span id="usernameDisplay">User</span></div>
+            <div class="menu-item">Users</div>
+            <div class="menu-item">Channels</div>
+            <div class="menu-item">Intercom</div>
+            <div class="menu-item">Logout</div>
+        </div>
+        <div class="content">
+            <!-- Status Section-->
+            <div id="status-section">
+                <div class="header">
+                    Talkback Status
+                </div>
+                <div class="active-users">
+                    Total Number of Active Users: <span id="activeUsersCount">0</span>
+                </div>
+                <div class ="active-channels">
+                    Total Number of Active Channels: <span id="activeChannelCount">0</span>
+                </div>
+                <hr class="seperator">
+                <div class="channelsContainer">
+                    <!-- Channels will be populated here -->
+                </div>
+            </div>
+            <!-- Users Section -->
+            <div id="users-section" class="content-selection" style="display: none;">
+                <button id="create-user-btn">Create User</button>
+                <button id="delete-selection-btn">Delete Selection</button>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Assigned Channels</th>
+                            <th>Select</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Dynamic Content Here !-->       
+                    </tbody>
+                    </table>
+                    <button id="save-changes-btn">Save Changes</button>
+                </div>
+                <div id="create-user-section" style="display:none">
+                <input id="usernameField" type="text" placeholder="Username">
+                <input id="passwordField" type="password" placeholder="Password">
+                <label>
+                    isAdmin?
+                    <input id="isAdminCheckbox" type="checkbox">
+                </label>
+                <button id="saveUserBtn">Save User</button>
+                </div>
+        <!-- Channels Section -->
+        <div id="channels-section" class="content-selection" style="display: none;">
+            <h3>Channel Management</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Channel Name</th>
+                            <th>Assigned Users</th>
+                            <th>Delete Channel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="channels-table-body">
+                        <!-- Dynamic Content Here -->
+                    </tbody>
+                </table>
+                <button id="new-channel-btn">Create New Channel</button>
+        </div>
+        <!-- Create Channels Section -->
+        <div id="create-channel-section" style="display: none;">
+            <h3> Create New Channel</h3>
+            <input id="newChannelNameField" type="text" placeholder="Channel Name">
+            <button id="saveNewChannelBtn">Save New Channel</button>
+
+            <h3>Assign Users</h3>
+            <select id="selectChannel">Select Channel</select>
+            <select multiple id="usersDropdown" size="5">
+                <!-- Options will be added dynamically -->
+            </select>
+            <button id="assignUsers">Assign Users to Channel</button>
+        </div>
+        <!-- Edit Channel Section -->
+        <div id="edit-channel-section" style="display: none;">
+            <input id="channelNameField" type="text" placeholder="Channel Name">
+            <input id="assignedUsersField" type="text" placeholder="Assigned Users, use a comma to seperate users"> <!-- Will use auto fill at some point for ease of use -->
+            <button id="saveChannelBtn">Save Channel</button>
+        </div>
+    </div>
+    <div id = "feedbackModal" class="modal">
+        <div class="modal-content">
+            <p id="feedbackMessage"></p>
+        </div>
+    </div>
+</body>
+</html>
