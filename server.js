@@ -4,27 +4,37 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const session = require('express-session');
 const crypto = require('crypto');
+const WebSocket = require ('ws');
+const wss = new WebSocket.Server({ port: 8080});
+
+wss.on('connection', function connection(ws){
+    ws.on('message', function incoming(message) {
+        wss.clients.forEach(function each(client){
+            if(client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(message);
+            }
+        });
+    });
+});
+console.log('WebSocket server is running on ws://localhost:8080');
 
 const sessionSecret = crypto.randomBytes(64).toString('hex');
 
 const app = express();
 const PORT = 3000;
 
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
-
-io.on('connection', (socket) =>{
-    console.log('User Connected: ', socket.io);
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.io);
-    });
-});
-http.listen(3000, () =>{
-    console.log('Server is listening on port 3000');
-});
-
-app.use(cors());
+app.use(cors({
+    origin: function (origin, callback) {
+      // Add logic here to dynamically check the origin
+      const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true // <-- Use this if your front end is sending credentials (like cookies or basic http auth)
+  }));
 app.use(bodyParser.json());
 app.use(session({
     secret: sessionSecret,
@@ -252,6 +262,54 @@ app.post('/logout', (req, res) => {
         res.status(400).send('Not logged in');
     }
 });
+
+//Endpoint to fetch users for specific channel based on channelID
+app.get('/getUsersWithChannels', async (req, res) => {
+    try {
+        if (!req.session.userID){
+            res.status(401).json({ message: 'User is not logged in.'});
+            return;
+        }
+
+        //Fetch channels for the logged-in user.
+        const sqlChannels = 'SELECT channelName from user_channels LEFT JOIN channels ON user_channels.channel_id = channels.channelID WHERE user_channels.user_id = ?';
+        const [channels] = await db.execute(sqlChannels, [req.session.userID]);
+        res.json({ channels: channels.map(channel => channel.channelName)});
+    
+    } catch (error) {
+        console.error('Error fetching channels for users:', error);
+        res.status(500).json({ message: 'Server error fetching chnanels for user'});
+
+    }
+});
+
+//Get Logged in users
+app.get('/getLoggedInUserId', cors({
+    origin: 'http://127.0.0.1:3000'
+}), (req, res) => {
+    // No need to set Access-Control-Allow-Credentials for sessionStorage approach
+    res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:3000');
+
+    // Extract the token from the Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const sessionToken = authHeader.substring(7);
+        // Validate the sessionToken and find the user ID
+        // This requires a function or method that validates the token and retrieves the user ID
+        const userID = validateSessionToken(sessionToken);
+
+        if (userID) {
+            res.json({ loggedInUserId: userID });
+        } else {
+            res.status(401).json({ message: 'Invalid session token.' });
+        }
+    } else {
+        res.status(401).json({ message: 'No session token provided.' });
+    }
+});
+
+
+
 
 
 app.listen(PORT, () => {

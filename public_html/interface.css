@@ -6,7 +6,6 @@ body {
   justify-content: center;
   flex-direction: column;
   height: 90vh;
-/*   background-color: #6af; */
   background-color: #fff;
 }
 
@@ -157,7 +156,9 @@ body {
     box-shadow: 5px 5px 15px rgba (0,0,0, 0.2);
     padding: 20px;
     width: 500px;
-    align-content: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
 
 }
@@ -175,10 +176,13 @@ body {
     background-color: green;
 }
 .remote-kill {
+    box-sizing: border-box;
+    width: 75%;
     background-color: red;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 10px;
     margin-top: 10px;
+    align-self: center;
 }

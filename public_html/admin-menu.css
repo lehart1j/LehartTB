@@ -50,6 +50,7 @@ body, html {
     font-size: 15px;
     display: none;
     width: 100%;
+    align-items: center;
 }
 
 table {
